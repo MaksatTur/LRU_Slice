@@ -13,6 +13,7 @@ import (
 type Service struct {
 	ServerURL string
 	LRU       *data.LRU
+	// Handler   data.Handler
 }
 
 //NewService ...
@@ -33,11 +34,11 @@ func (s *Service) mainHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(fileContents)
 }
 
-func (s Service) todosHandler(w http.ResponseWriter, r *http.Request) {
+//TodosHandler ...
+func (s Service) TodosHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	switch r.Method {
 	case http.MethodGet:
-		fmt.Printf("From Get todos = %v\n", s.LRU.ToDoItems)
 		todosJSON, err := json.Marshal(s.LRU.ToDoItems)
 		if err != nil {
 			log.Println(err)
@@ -77,7 +78,7 @@ func (s *Service) panicMiddlware(next http.Handler) http.Handler {
 func (s *Service) StartService() {
 	apiMux := http.NewServeMux()
 	apiMux.HandleFunc("/", s.mainHandler)
-	apiMux.HandleFunc("/todos/", s.todosHandler)
+	apiMux.HandleFunc("/todos/", s.TodosHandler)
 	mainHandler := s.panicMiddlware(apiMux)
 	fmt.Printf("Service is started on %s\n", s.ServerURL)
 	log.Fatal(http.ListenAndServe(s.ServerURL, mainHandler))
